@@ -11,7 +11,7 @@ sys.path.insert(0, ROOT)  # make `finops` importable when run as a script
 
 
 def load_csv(name: str) -> list[dict]:
-    with open(os.path.join(DATA, name), newline="") as f:
+    with open(os.path.join(DATA, name), newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 

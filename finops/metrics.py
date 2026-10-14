@@ -61,3 +61,51 @@ def flag_util_lies(rows, util_threshold: float = 0.90, mfu_threshold: float = 0.
 def idle_waste_usd(idle_hours: float, on_demand_hr: float) -> float:
     """Dollars burned by a GPU left running idle (training done, instance up)."""
     return max(0.0, idle_hours) * max(0.0, on_demand_hr)
+
+
+def vram_cost_per_gb_hr(on_demand_hr: float, hbm_gb: float) -> float:
+    """Hourly cost per GB of VRAM ($ / GB-hr). Lower is better value for capacity."""
+    if hbm_gb <= 0:
+        return 0.0
+    return on_demand_hr / hbm_gb
+
+
+def bandwidth_cost_per_tbs_hr(on_demand_hr: float, peak_bw_tbs: float) -> float:
+    """Hourly cost per TB/s memory bandwidth ($ / (TB/s)-hr). Lower is better for memory-bound serving."""
+    if peak_bw_tbs <= 0:
+        return 0.0
+    return on_demand_hr / peak_bw_tbs
+
+
+def rightsize_mbu_candidates(
+    current_gpu_type: str,
+    achieved_bw_tbs: float,
+    catalog: dict[str, dict],
+) -> list[dict]:
+    """Find cheaper GPU candidates in the catalog that satisfy the achieved memory bandwidth requirement."""
+    cur_cat = catalog.get(current_gpu_type)
+    if not cur_cat:
+        return []
+    cur_price = float(cur_cat["on_demand_hr"])
+
+    candidates = []
+    for gtype, cat_entry in catalog.items():
+        if gtype == current_gpu_type:
+            continue
+        od_hr = float(cat_entry["on_demand_hr"])
+        peak_bw = float(cat_entry["peak_bw_tbs"])
+        hbm = float(cat_entry["hbm_gb"])
+
+        if od_hr < cur_price and peak_bw >= achieved_bw_tbs * 1.10:
+            savings_pct = (cur_price - od_hr) / cur_price * 100.0
+            candidates.append({
+                "target_gpu": gtype,
+                "current_price_hr": cur_price,
+                "target_price_hr": od_hr,
+                "savings_pct": round(savings_pct, 1),
+                "peak_bw_tbs": peak_bw,
+                "vram_gb": hbm,
+                "vram_cost_per_gb": round(vram_cost_per_gb_hr(od_hr, hbm), 4),
+                "bw_cost_per_tbs": round(bandwidth_cost_per_tbs_hr(od_hr, peak_bw), 4),
+            })
+    return sorted(candidates, key=lambda c: c["target_price_hr"])

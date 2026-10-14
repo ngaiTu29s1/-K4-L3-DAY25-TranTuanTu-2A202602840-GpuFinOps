@@ -5,7 +5,7 @@ description: "Đóng vai FinOps Engineer tại NimbusAI: phân tích telemetry G
 author: "VinUni Codelab" # Tác giả
 duration: 240 # 4 tiếng (240 phút)
 category: "Infrastructure & FinOps" # Nhóm nội dung
-updated: "2026-08-27" # Tự điền ngày hiện tại (YYYY-MM-DD)
+updated: "2026-10-14" # Tự điền ngày hiện tại (YYYY-MM-DD)
 day: "25" # Day của cohort
 sequence: 1 # Thứ tự hiển thị trong cùng Day (số nhỏ hơn hiện trước)
 keywords: ["GPU", "FinOps", "Cost Optimization", "LLM Inference", "MFU", "FOCUS", "Sustainability"] # Ví dụ: ["AI", "API"]
